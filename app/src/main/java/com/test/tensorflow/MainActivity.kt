@@ -3,16 +3,13 @@ package com.test.tensorflow
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.test.tensorflow.ml.V3TrimmedQuantizationNoprepost
 import kotlinx.coroutines.Dispatchers
@@ -107,20 +104,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getOutputImage(output: ByteBuffer, outputWidth: Int, outputHeight: Int): Bitmap {
-        output.rewind() // Rewind the output buffer after running.
+        output.rewind()
         output.order(ByteOrder.nativeOrder())
 
         val bitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
-        val pixels = IntArray(outputWidth * outputHeight) // Set your expected output's height and width
-        for (i in 0 until outputWidth * outputHeight) {
-            val a = 0xFF
-            val r: Float = output.float * 255.0f
-            val g: Float = output.float * 255.0f
-            val b: Float = output.float * 255.0f
-            pixels[i] = a shl 24 or (r.toInt() shl 16) or (g.toInt() shl 8) or b.toInt()
-        }
-        bitmap.setPixels(pixels, 0, outputWidth, 0, 0, outputWidth, outputHeight)
-
+        val buffer = ByteBuffer.wrap(output.array())
+        bitmap.copyPixelsFromBuffer(buffer)
         return bitmap
     }
 }
