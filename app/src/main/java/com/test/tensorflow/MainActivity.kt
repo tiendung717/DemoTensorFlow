@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
             // Releases model resources if no longer used.
             model.close()
 
-            val bitmap = convertByteBufferToBitmap(outputBuffer.buffer, 320, 320)
+            val bitmap = getOutputImage(outputBuffer.buffer, 320, 320)
 
             withContext(Dispatchers.Main) {
                 loadingView.visibility = View.GONE
@@ -106,18 +106,21 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun convertByteBufferToBitmap(
-        byteBuffer: ByteBuffer,
-        imgSizeX: Int,
-        imgSizeY: Int
-    ): Bitmap? {
-        byteBuffer.rewind()
-        byteBuffer.order(ByteOrder.nativeOrder())
-        val bitmap = Bitmap.createBitmap(imgSizeX, imgSizeY, Bitmap.Config.ARGB_8888)
-        val pixels = IntArray(imgSizeX * imgSizeY)
-        for (i in 0 until imgSizeX * imgSizeY) if (byteBuffer.float > 0.5) pixels[i] =
-            Color.argb(255, 255, 105, 255) else pixels[i] = Color.argb(0, 0, 0, 0)
-        bitmap.setPixels(pixels, 0, imgSizeX, 0, 0, imgSizeX, imgSizeY)
+    private fun getOutputImage(output: ByteBuffer, outputWidth: Int, outputHeight: Int): Bitmap {
+        output.rewind() // Rewind the output buffer after running.
+        output.order(ByteOrder.nativeOrder())
+
+        val bitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
+        val pixels = IntArray(outputWidth * outputHeight) // Set your expected output's height and width
+        for (i in 0 until outputWidth * outputHeight) {
+            val a = 0xFF
+            val r: Float = output.float * 255.0f
+            val g: Float = output.float * 255.0f
+            val b: Float = output.float * 255.0f
+            pixels[i] = a shl 24 or (r.toInt() shl 16) or (g.toInt() shl 8) or b.toInt()
+        }
+        bitmap.setPixels(pixels, 0, outputWidth, 0, 0, outputWidth, outputHeight)
+
         return bitmap
     }
 }
