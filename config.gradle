@@ -1,0 +1,110 @@
+rootProject.ext.java_source_version = JavaVersion.VERSION_1_8
+rootProject.ext.java_target_version = JavaVersion.VERSION_1_8
+
+rootProject.ext.target_sdk = 31
+rootProject.ext.compile_sdk = 31
+rootProject.ext.min_sdk = 23
+rootProject.ext.version_code = 1
+rootProject.ext.version_name = "0.0.1"
+
+// Kotlin
+rootProject.ext.coroutines = '1.5.2'
+
+// AndroidX
+rootProject.ext.material = '1.5.0'
+rootProject.ext.core_ktx = '1.7.0'
+rootProject.ext.appcompat = '1.4.1'
+rootProject.ext.preference = '1.1.1'
+
+// Lifecycle
+rootProject.ext.lifecycle_runtime = '2.4.0'
+rootProject.ext.lifecycle_viewmodel = '2.4.0'
+rootProject.ext.lifecycle_extension = '2.2.0'
+rootProject.ext.lifecycle_common = '2.4.0'
+
+// Android Jetpack
+rootProject.ext.room = '2.4.0-alpha02'
+rootProject.ext.hilt = '2.38.1'
+
+// Firebase
+rootProject.ext.firebaseBom = '29.0.0'
+
+// Others
+rootProject.ext.timber_log = '4.7.1'
+rootProject.ext.billing = '4.0.0'
+rootProject.ext.dateTime = '1.2.1'
+
+// Compose
+rootProject.ext.composeVerion = "1.1.0-rc01"
+rootProject.ext.composeConstrainLayout = '1.0.0'
+rootProject.ext.composeNavigation = '2.5.0-alpha01'
+rootProject.ext.composeNavigationHilt = '1.0.0'
+rootProject.ext.coilVersion = '1.4.0'
+rootProject.ext.accompanistInsetsVersion = '0.22.0-rc'
+rootProject.ext.accompanist = '0.22.1-rc'
+
+rootProject.ext.deps = [
+
+        // AndroidX
+        core_ktx                      : "androidx.core:core-ktx:$core_ktx",
+        appcompat                     : "androidx.appcompat:appcompat:$appcompat",
+        material                      : "com.google.android.material:material:$material",
+        preference                    : "androidx.preference:preference:$preference",
+
+        // Lifecycle
+        lifecycle_viewmodel           : "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_viewmodel",
+        lifecycle_extension           : "androidx.lifecycle:lifecycle-extensions:$lifecycle_extension",
+        lifecycle_runtime             : "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_runtime",
+        lifecycle_common              : "androidx.lifecycle:lifecycle-common-java8:$lifecycle_common",
+
+        // Coroutines
+        coroutine                     : "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines",
+        coroutine_core                : "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines",
+
+        // Hilt
+        hilt                          : "com.google.dagger:hilt-android:$hilt",
+        hilt_compiler                 : "com.google.dagger:hilt-compiler:$hilt",
+
+        // Room
+        roomRuntime                   : "androidx.room:room-runtime:$room",
+        annotationProcessorRoom       : "androidx.room:room-compiler:$room",
+        kaptRoom                      : "androidx.room:room-compiler:$room",
+        roomKtx                       : "androidx.room:room-ktx:$room",
+
+        // Logging
+        timber_log                    : "com.jakewharton.timber:timber:$timber_log",
+
+        // Date time
+        date_time                     : "com.jakewharton.threetenabp:threetenabp:$dateTime",
+
+        // Firebase
+        firebaseBom                   : "com.google.firebase:firebase-bom:$firebaseBom",
+        firebaseCrasylytics           : "com.google.firebase:firebase-crashlytics",
+        firebaseAnalytics             : "com.google.firebase:firebase-analytics",
+        firebaseAuth                  : 'com.google.firebase:firebase-auth-ktx',
+        firebaseAuthGoogle            : 'com.google.android.gms:play-services-auth:19.2.0',
+        firebaseAuthFacebook          : 'com.facebook.android:facebook-android-sdk:9.1.1',
+        firebaseDynamicLink           : 'com.google.firebase:firebase-dynamic-links-ktx',
+        firebaseMessage               : 'com.google.firebase:firebase-messaging',
+
+        // billing
+        billing                       : "com.android.billingclient:billing:$billing",
+
+        // Compose
+        compose_ui                    : "androidx.compose.ui:ui:$composeVerion",
+        compose_material              : "androidx.compose.material:material:$composeVerion",
+        compose_material_icon         : "androidx.compose.material:material-icons-extended:$composeVerion",
+        compose_constraintLayout      : "androidx.constraintlayout:constraintlayout-compose:$composeConstrainLayout",
+        compose_ui_tooling_preview    : "androidx.compose.ui:ui-tooling-preview:$composeVerion",
+        debug_compose_ui_tooling      : "androidx.compose.ui:ui-tooling:$composeVerion",
+
+        compose_navigation            : "androidx.navigation:navigation-compose:$composeNavigation",
+        compose_navigation_hilt       : "androidx.hilt:hilt-navigation-compose:$composeNavigationHilt",
+
+        compose_coil                  : "io.coil-kt:coil-compose:$coilVersion",
+        compose_accompanist_inset     : "com.google.accompanist:accompanist-insets:$accompanistInsetsVersion",
+
+        accompanist_swiperefresh      : "com.google.accompanist:accompanist-swiperefresh:$accompanist",
+        accompanist_insets            : "com.google.accompanist:accompanist-insets:$accompanist",
+        accompanist_systemuicontroller: "com.google.accompanist:accompanist-systemuicontroller:$accompanist"
+]
