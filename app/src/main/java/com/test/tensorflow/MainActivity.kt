@@ -53,6 +53,8 @@ class MainActivity : AppCompatActivity() {
             val rdo = RadioButton(this).apply {
                 id = index
                 text = mode.name
+                setTextColor(Color.WHITE)
+                isChecked = mode == PorterDuff.Mode.DST_IN
             }
             rdoGroup.addView(rdo)
         }
@@ -88,9 +90,11 @@ class MainActivity : AppCompatActivity() {
     private fun removeBackground(context: Context, @DrawableRes image: Int) {
         val loadingView = findViewById<View>(R.id.loadingView)
         val ivResult = findViewById<ImageView>(R.id.ivResult)
+        val ivMask = findViewById<ImageView>(R.id.ivMask)
 
         loadingView.visibility = View.VISIBLE
         ivResult.visibility = View.GONE
+        ivMask.visibility = View.GONE
 
         lifecycleScope.launch(Dispatchers.IO) {
             val model = V3TrimmedQuantizationNoprepost.newInstance(context)
@@ -128,49 +132,25 @@ class MainActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 loadingView.visibility = View.GONE
                 ivResult.visibility = View.VISIBLE
+                ivMask.visibility = View.VISIBLE
+
+                ivMask.setImageBitmap(bitmapMask)
                 ivResult.setImageBitmap(resultBitmap)
             }
         }
 
     }
 
-    private fun cutout(sourceBitmap: Bitmap, mask: Bitmap) : Bitmap {
-        val resultBitmap = Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(resultBitmap)
+    private fun cutout(sourceBitmap: Bitmap, mask: Bitmap): Bitmap {
+        val result = Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
         canvas.drawBitmap(sourceBitmap, 0f, 0f, null)
 
-        val paint = Paint().apply {
-            xfermode = PorterDuffXfermode(mode[rdoGroup.checkedRadioButtonId])
-        }
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN) // PorterDuffXfermode(mode[rdoGroup.checkedRadioButtonId])
+
         canvas.drawBitmap(mask, 0f, 0f, paint)
-        return resultBitmap
-    }
-
-    private fun getOutputImage(
-        output: ByteBuffer,
-        width: Int,
-        height: Int
-    ): Bitmap {
-        output.rewind()
-        output.order(ByteOrder.nativeOrder())
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val pixels = IntArray(width * height * 4) // Set your expected output's height and width
-
-        for (h in 0..height)
-            for (w in 0..width) {
-                val i = (width * h + w)
-                val a = 0xFF
-                val r: Float = output.getFloat(width * h + w) * 255.0f
-                val g: Float = output.getFloat(width * h + w) * 255.0f
-                val b: Float = output.getFloat(width * h + w) * 255.0f
-                Log.d("nt.dung", "r: $r, g: $g, b: $b")
-
-                pixels[i] = a shl 24 or (r.toInt() shl 16) or (g.toInt() shl 8) or b.toInt()
-            }
-
-        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
-
-        return bitmap
+        return result
     }
 
     private fun floatArrayToGrayscaleBitmap(
@@ -198,13 +178,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         // copy each value from float array to RGB channels and set alpha channel
-        floatArray.forEachIndexed { i, value ->
-            tempValue = conversion(value)
-            byteBuffer.put(4 * i, tempValue) // r
-            byteBuffer.put(4 * i + 1, tempValue) // g
-            byteBuffer.put(4 * i + 2, tempValue) // b
-            byteBuffer.put(4 * i + 3, alpha) // a
-        }
+        for (h in 0 until height)
+            for (w in 0 until width) {
+                val i = width * h + w
+                tempValue = conversion(floatArray[i])
+                byteBuffer.put(4 * i, tempValue) // r
+                byteBuffer.put(4 * i + 1, tempValue) // g
+                byteBuffer.put(4 * i + 2, tempValue) // b
+                byteBuffer.put(4 * i + 3, alpha) // a
+            }
 
         bmp.copyPixelsFromBuffer(byteBuffer)
 
