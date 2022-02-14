@@ -123,18 +123,7 @@ class MainActivity : AppCompatActivity() {
                 reverseScale = true
             )
 
-            val paint = Paint().apply {
-                xfermode = PorterDuffXfermode(mode[rdoGroup.checkedRadioButtonId])
-            }
-
-            val resultBitmap = Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(resultBitmap)
-
-            val destinationImage = tensorImage.bitmap
-            canvas.drawBitmap(destinationImage, 0f, 0f, null)
-
-            val sourceImage = bitmapMask
-            canvas.drawBitmap(sourceImage, 0f, 0f, paint)
+            val resultBitmap = cutout(tensorImage.bitmap, bitmapMask)
 
             withContext(Dispatchers.Main) {
                 loadingView.visibility = View.GONE
@@ -143,6 +132,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    private fun cutout(sourceBitmap: Bitmap, mask: Bitmap) : Bitmap {
+        val resultBitmap = Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(resultBitmap)
+        canvas.drawBitmap(sourceBitmap, 0f, 0f, null)
+
+        val paint = Paint().apply {
+            xfermode = PorterDuffXfermode(mode[rdoGroup.checkedRadioButtonId])
+        }
+        canvas.drawBitmap(mask, 0f, 0f, paint)
+        return resultBitmap
     }
 
     private fun getOutputImage(
