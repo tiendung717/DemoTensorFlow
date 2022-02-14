@@ -7,6 +7,18 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <HorizontalScrollView
+        android:scrollbars="none"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <RadioGroup
+            android:id="@+id/rdoGroup"
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:scrollbars="horizontal"
+            android:layout_height="wrap_content" />
+    </HorizontalScrollView>
+
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/vpOriginImage"
         android:layout_width="wrap_content"
