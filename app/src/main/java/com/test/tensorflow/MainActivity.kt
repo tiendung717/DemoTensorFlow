@@ -3,7 +3,6 @@ package com.test.tensorflow
 import android.content.Context
 import android.graphics.*
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.RadioButton
@@ -21,8 +20,9 @@ import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+
+import kotlin.math.min
+import kotlin.math.max
 
 
 class MainActivity : AppCompatActivity() {
@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
             val model = V3TrimmedQuantizationNoprepost.newInstance(context)
 
             val imageProcessor = ImageProcessor.Builder()
-                .add(ResizeOp(320, 320, ResizeOp.ResizeMethod.BILINEAR))
+                .add(ResizeOp(SIZE, SIZE, ResizeOp.ResizeMethod.BILINEAR))
                 .build()
 
             var tensorImage = TensorImage(DataType.FLOAT32)
@@ -110,7 +110,7 @@ class MainActivity : AppCompatActivity() {
             tensorImage = imageProcessor.process(tensorImage)
 
             // Creates inputs for reference.
-            val input = TensorBuffer.createFixedSize(intArrayOf(1, 3, 320, 320), DataType.FLOAT32)
+            val input = TensorBuffer.createFixedSize(intArrayOf(1, 3, SIZE, SIZE), DataType.FLOAT32)
             input.loadBuffer(tensorImage.buffer)
 
             // Runs model inference and gets result.
@@ -119,15 +119,26 @@ class MainActivity : AppCompatActivity() {
 
             // Releases model resources if no longer used.
             model.close()
-
-            val bitmapMask = floatArrayToGrayscaleBitmap(
+            
+            val bitmapMask = convertToBitmap(
                 floatArray = outputBuffer.floatArray,
-                width = 320,
-                height = 320,
+                width = SIZE,
+                height = SIZE,
                 reverseScale = false
             )
 
-            val resultBitmap = cutout(tensorImage.bitmap, bitmapMask)
+            val resultBitmap = saveCutout(tensorImage.bitmap, bitmapMask)
+
+
+//  TEST ++
+//            val sampleMask = BitmapFactory.decodeResource(context.resources, R.drawable.mask)
+//            var tensorImageMask = TensorImage(DataType.FLOAT32)
+//
+//            tensorImageMask.load(sampleMask)
+//            tensorImageMask = imageProcessor.process(tensorImageMask)
+//
+//            val resultBitmap = cutout(tensorImage.bitmap, tensorImageMask.bitmap)
+//  TEST --
 
             withContext(Dispatchers.Main) {
                 loadingView.visibility = View.GONE
@@ -141,55 +152,49 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun cutout(sourceBitmap: Bitmap, mask: Bitmap): Bitmap {
-        val result = Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888)
+    private fun saveCutout(sourceBitmap: Bitmap, mask: Bitmap): Bitmap {
+        val result = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
-        canvas.drawBitmap(sourceBitmap, 0f, 0f, null)
+        canvas.drawBitmap(sourceBitmap, 0f, 0f, Paint())
 
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN) // PorterDuffXfermode(mode[rdoGroup.checkedRadioButtonId])
+        val paint = Paint()
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
 
         canvas.drawBitmap(mask, 0f, 0f, paint)
         return result
     }
 
-    private fun floatArrayToGrayscaleBitmap(
+    private fun convertToBitmap(
         floatArray: FloatArray,
         width: Int,
         height: Int,
-        alpha: Byte = (255).toByte(),
+        alpha: Int = 255,
         reverseScale: Boolean = false
     ): Bitmap {
-
-        // Create empty bitmap in RGBA format (even though it says ARGB but channels are RGBA)
-        val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val byteBuffer = ByteBuffer.allocate(width * height * 4)
-
-        // mapping smallest value to 0 and largest value to 255
-        val maxValue = floatArray.maxOrNull() ?: 1.0f
-        val minValue = floatArray.minOrNull() ?: 0.0f
-        val delta = maxValue - minValue
-        var tempValue: Byte
-
-        // Define if float min..max will be mapped to 0..255 or 255..0
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val conversion = when (reverseScale) {
-            false -> { v: Float -> ((v - minValue) / delta * 255).toInt().toByte() }
-            true -> { v: Float -> (255 - (v - minValue) / delta * 255).toInt().toByte() }
+            false -> { v: Float ->
+                val p = max(min((v * 255).toInt(), 255), 0)
+                p
+            }
+            true -> { v: Float ->
+                val p = max(min((v * 255).toInt(), 255), 0)
+                (255 - p)
+            }
         }
 
         // copy each value from float array to RGB channels and set alpha channel
         for (h in 0 until height)
             for (w in 0 until width) {
                 val i = width * h + w
-                tempValue = conversion(floatArray[i])
-                byteBuffer.put(4 * i, tempValue) // r
-                byteBuffer.put(4 * i + 1, tempValue) // g
-                byteBuffer.put(4 * i + 2, tempValue) // b
-                byteBuffer.put(4 * i + 3, alpha) // a
+                val value = conversion(floatArray[i])
+                val pixel = Color.argb(alpha, value, value, value)
+                bitmap.setPixel(w, h, pixel)
             }
-
-        bmp.copyPixelsFromBuffer(byteBuffer)
-
-        return bmp
+        return bitmap
+    }
+    
+    companion object {
+        private const val SIZE = 320
     }
 }
