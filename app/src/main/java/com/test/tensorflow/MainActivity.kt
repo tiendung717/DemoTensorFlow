@@ -124,7 +124,7 @@ class MainActivity : AppCompatActivity() {
                 floatArray = outputBuffer.floatArray,
                 width = 320,
                 height = 320,
-                reverseScale = true
+                reverseScale = false
             )
 
             val resultBitmap = cutout(tensorImage.bitmap, bitmapMask)
