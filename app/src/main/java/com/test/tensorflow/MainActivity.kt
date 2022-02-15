@@ -109,35 +109,35 @@ class MainActivity : AppCompatActivity() {
             tensorImage.load(inputBitmap)
             tensorImage = imageProcessor.process(tensorImage)
 
-            // Creates inputs for reference.
-            val input = TensorBuffer.createFixedSize(intArrayOf(1, 3, SIZE, SIZE), DataType.FLOAT32)
-            input.loadBuffer(tensorImage.buffer)
 
-            // Runs model inference and gets result.
-            val outputs = model.process(input)
-            val outputBuffer = outputs.outputFeature0AsTensorBuffer
-
-            // Releases model resources if no longer used.
-            model.close()
-            
-            val mask = convertToBitmap(
-                floatArray = outputBuffer.floatArray,
-                width = SIZE,
-                height = SIZE,
-                reverseScale = false
-            )
-
-            val final = saveCutout(tensorImage.bitmap, mask)
+//            val input = TensorBuffer.createFixedSize(intArrayOf(1, 3, SIZE, SIZE), DataType.FLOAT32)
+//            input.loadBuffer(tensorImage.buffer)
+//
+//            // Runs model inference and gets result.
+//            val outputs = model.process(input)
+//            val outputBuffer = outputs.outputFeature0AsTensorBuffer
+//
+//            // Releases model resources if no longer used.
+//            model.close()
+//
+//            val mask = convertToBitmap(
+//                floatArray = outputBuffer.floatArray,
+//                width = SIZE,
+//                height = SIZE,
+//                reverseScale = false
+//            )
+//
+//            val final = saveCutout(tensorImage.bitmap, mask)
 
 
 //  TEST ++
-//            val sampleMask = BitmapFactory.decodeResource(context.resources, R.drawable.mask)
-//            var tensorImageMask = TensorImage(DataType.FLOAT32)
-//
-//            tensorImageMask.load(sampleMask)
-//            tensorImageMask = imageProcessor.process(tensorImageMask)
-//
-//            val resultBitmap = cutout(tensorImage.bitmap, tensorImageMask.bitmap)
+            val sampleMask = BitmapFactory.decodeResource(context.resources, R.drawable.mask)
+            var tensorImageMask = TensorImage(DataType.FLOAT32)
+
+            tensorImageMask.load(sampleMask)
+            tensorImageMask = imageProcessor.process(tensorImageMask)
+
+            val final = saveCutout(tensorImage.bitmap, tensorImageMask.bitmap)
 //  TEST --
 
             withContext(Dispatchers.Main) {
@@ -145,7 +145,7 @@ class MainActivity : AppCompatActivity() {
                 ivResult.visibility = View.VISIBLE
                 ivMask.visibility = View.VISIBLE
 
-                ivMask.setImageBitmap(mask)
+                ivMask.setImageBitmap(tensorImageMask.bitmap)
                 ivResult.setImageBitmap(final)
             }
         }
