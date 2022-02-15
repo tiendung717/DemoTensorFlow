@@ -115,19 +115,19 @@ class MainActivity : AppCompatActivity() {
 
             // Runs model inference and gets result.
             val outputs = model.process(input)
-            val outputBuffer: TensorBuffer = outputs.outputFeature0AsTensorBuffer
+            val outputBuffer = outputs.outputFeature0AsTensorBuffer
 
             // Releases model resources if no longer used.
             model.close()
             
-            val bitmapMask = convertToBitmap(
+            val mask = convertToBitmap(
                 floatArray = outputBuffer.floatArray,
                 width = SIZE,
                 height = SIZE,
                 reverseScale = false
             )
 
-            val resultBitmap = saveCutout(tensorImage.bitmap, bitmapMask)
+            val final = saveCutout(tensorImage.bitmap, mask)
 
 
 //  TEST ++
@@ -145,8 +145,8 @@ class MainActivity : AppCompatActivity() {
                 ivResult.visibility = View.VISIBLE
                 ivMask.visibility = View.VISIBLE
 
-                ivMask.setImageBitmap(bitmapMask)
-                ivResult.setImageBitmap(resultBitmap)
+                ivMask.setImageBitmap(mask)
+                ivResult.setImageBitmap(final)
             }
         }
 
