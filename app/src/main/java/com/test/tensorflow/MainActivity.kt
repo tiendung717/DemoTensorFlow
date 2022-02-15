@@ -155,12 +155,13 @@ class MainActivity : AppCompatActivity() {
     private fun saveCutout(sourceBitmap: Bitmap, mask: Bitmap): Bitmap {
         val result = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
-        canvas.drawBitmap(sourceBitmap, 0f, 0f, Paint())
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        canvas.drawBitmap(sourceBitmap, 0f, 0f, paint)
 
-        val paint = Paint()
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
-
         canvas.drawBitmap(mask, 0f, 0f, paint)
+
+        paint.xfermode = null
         return result
     }
 
