@@ -11,7 +11,7 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
-import com.test.tensorflow.ml.V3TrimmedQuantizationNoprepost
+import com.test.tensorflow.ml.V3TrimmedClastQuan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,6 +20,8 @@ import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import java.io.FileOutputStream
+import java.io.IOException
 
 import kotlin.math.min
 import kotlin.math.max
@@ -97,7 +99,7 @@ class MainActivity : AppCompatActivity() {
         ivMask.visibility = View.GONE
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val model = V3TrimmedQuantizationNoprepost.newInstance(context)
+            val model = V3TrimmedClastQuan.newInstance(context)
 
             val imageProcessor = ImageProcessor.Builder()
                 .add(ResizeOp(SIZE, SIZE, ResizeOp.ResizeMethod.BILINEAR))
@@ -110,34 +112,34 @@ class MainActivity : AppCompatActivity() {
             tensorImage = imageProcessor.process(tensorImage)
 
 
-//            val input = TensorBuffer.createFixedSize(intArrayOf(1, 3, SIZE, SIZE), DataType.FLOAT32)
-//            input.loadBuffer(tensorImage.buffer)
-//
-//            // Runs model inference and gets result.
-//            val outputs = model.process(input)
-//            val outputBuffer = outputs.outputFeature0AsTensorBuffer
-//
-//            // Releases model resources if no longer used.
-//            model.close()
-//
-//            val mask = convertToBitmap(
-//                floatArray = outputBuffer.floatArray,
-//                width = SIZE,
-//                height = SIZE,
-//                reverseScale = false
-//            )
-//
-//            val final = saveCutout(tensorImage.bitmap, mask)
+            val input = TensorBuffer.createFixedSize(intArrayOf(1, SIZE, SIZE, 3), DataType.FLOAT32)
+            input.loadBuffer(tensorImage.buffer)
 
+            // Runs model inference and gets result.
+            val outputs = model.process(input)
+            val outputBuffer = outputs.outputFeature0AsTensorBuffer
+
+            // Releases model resources if no longer used.
+            model.close()
+
+            val mask = convertToBitmap(
+                floatArray = outputBuffer.floatArray,
+                width = SIZE,
+                height = SIZE,
+                reverseScale = false
+            )
+
+            saveBitmapToFile(mask, context)
+            val final = saveCutout(tensorImage.bitmap, mask)
 
 //  TEST ++
-            val sampleMask = BitmapFactory.decodeResource(context.resources, R.drawable.mask)
-            var tensorImageMask = TensorImage(DataType.FLOAT32)
-
-            tensorImageMask.load(sampleMask)
-            tensorImageMask = imageProcessor.process(tensorImageMask)
-
-            val final = saveCutout(tensorImage.bitmap, tensorImageMask.bitmap)
+//            val sampleMask = BitmapFactory.decodeResource(context.resources, R.drawable.test_mask)
+//            var tensorImageMask = TensorImage(DataType.FLOAT32)
+//
+//            tensorImageMask.load(sampleMask)
+//            tensorImageMask = imageProcessor.process(tensorImageMask)
+//
+//            val final = saveCutout(tensorImage.bitmap, tensorImageMask.bitmap)
 //  TEST --
 
             withContext(Dispatchers.Main) {
@@ -145,11 +147,21 @@ class MainActivity : AppCompatActivity() {
                 ivResult.visibility = View.VISIBLE
                 ivMask.visibility = View.VISIBLE
 
-                ivMask.setImageBitmap(tensorImageMask.bitmap)
+                ivMask.setImageBitmap(mask)
                 ivResult.setImageBitmap(final)
             }
         }
 
+    }
+
+    private fun saveBitmapToFile(bmp: Bitmap, context: Context) {
+        try {
+            val fileName = context.filesDir.absolutePath + "/mask.png"
+            val out = FileOutputStream(fileName)
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+        } catch (e: IOException) {
+            e.printStackTrace();
+        }
     }
 
     private fun saveCutout(sourceBitmap: Bitmap, mask: Bitmap): Bitmap {
@@ -169,7 +181,6 @@ class MainActivity : AppCompatActivity() {
         floatArray: FloatArray,
         width: Int,
         height: Int,
-        alpha: Int = 255,
         reverseScale: Boolean = false
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
@@ -189,6 +200,7 @@ class MainActivity : AppCompatActivity() {
             for (w in 0 until width) {
                 val i = width * h + w
                 val value = conversion(floatArray[i])
+                val alpha = if (value == 0) 0 else 255
                 val pixel = Color.argb(alpha, value, value, value)
                 bitmap.setPixel(w, h, pixel)
             }
